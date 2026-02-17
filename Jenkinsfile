@@ -1,6 +1,7 @@
 pipeline {
-    agent any
-
+    agent {
+        label 'built-in'
+    }
     environment {
         DOCKERHUB_REPO_BACKEND = "rushii01/shopnow-backend"
         DOCKERHUB_REPO_FRONTEND = "rushii01/shopnow-frontend"
