@@ -1,7 +1,35 @@
 pipeline {
     agent {
-        label 'built-in'
+        kubernetes {
+            label 'kaniko-agent'
+            defaultContainer 'jnlp'
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  serviceAccountName: jenkins
+  containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:latest
+      command:
+        - /busybox/cat
+      tty: true
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker
+    - name: helm
+      image: alpine/helm:3.12.0
+      command:
+        - cat
+      tty: true
+  volumes:
+    - name: docker-config
+      secret:
+        secretName: dockerhub-secret
+"""
+        }
     }
+
     environment {
         DOCKERHUB_REPO_BACKEND = "rushii01/shopnow-backend"
         DOCKERHUB_REPO_FRONTEND = "rushii01/shopnow-frontend"
@@ -17,37 +45,29 @@ pipeline {
             }
         }
 
-        stage('Build Backend Image') {
+        stage('Build & Push Backend') {
             steps {
-                dir('shopNow/backend') {
+                container('kaniko') {
                     sh """
-                        docker build -t $DOCKERHUB_REPO_BACKEND:${BUILD_NUMBER} .
+                    /kaniko/executor \
+                      --dockerfile=shopNow/backend/Dockerfile \
+                      --context=dir://shopNow/backend \
+                      --destination=$DOCKERHUB_REPO_BACKEND:${BUILD_NUMBER} \
+                      --destination=$DOCKERHUB_REPO_BACKEND:latest
                     """
                 }
             }
         }
 
-        stage('Build Frontend Image') {
+        stage('Build & Push Frontend') {
             steps {
-                dir('shopNow/frontend') {
+                container('kaniko') {
                     sh """
-                        docker build -t $DOCKERHUB_REPO_FRONTEND:${BUILD_NUMBER} .
-                    """
-                }
-            }
-        }
-
-        stage('Docker Login & Push') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh """
-                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        docker push $DOCKERHUB_REPO_BACKEND:${BUILD_NUMBER}
-                        docker push $DOCKERHUB_REPO_FRONTEND:${BUILD_NUMBER}
+                    /kaniko/executor \
+                      --dockerfile=shopNow/frontend/Dockerfile \
+                      --context=dir://shopNow/frontend \
+                      --destination=$DOCKERHUB_REPO_FRONTEND:${BUILD_NUMBER} \
+                      --destination=$DOCKERHUB_REPO_FRONTEND:latest
                     """
                 }
             }
@@ -55,22 +75,24 @@ pipeline {
 
         stage('Helm Upgrade Deployment') {
             steps {
-                sh """
+                container('helm') {
+                    sh """
                     helm upgrade --install $HELM_RELEASE ./shopnow-chart \
-                    -n $K8S_NAMESPACE \
-                    --set backend.image.tag=${BUILD_NUMBER} \
-                    --set frontend.image.tag=${BUILD_NUMBER}
-                """
+                      -n $K8S_NAMESPACE \
+                      --set backend.image.tag=${BUILD_NUMBER} \
+                      --set frontend.image.tag=${BUILD_NUMBER}
+                    """
+                }
             }
         }
     }
 
     post {
         success {
-            echo "Deployment Successful"
+            echo "CI/CD Pipeline Completed Successfully"
         }
         failure {
-            echo "Deployment Failed"
+            echo "Pipeline Failed"
         }
     }
 }
