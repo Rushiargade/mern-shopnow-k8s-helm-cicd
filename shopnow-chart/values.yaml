@@ -1,0 +1,27 @@
+namespace: shopnow
+
+mongodb:
+  image: mongo:6.0
+  database: shopnow
+  replicas: 1
+
+backend:
+  image:
+    repository: rushii01/shopnow-backend
+    tag: "1.0"
+  replicas: 2
+  service:
+    port: 5000
+
+frontend:
+  image:
+    repository: rushii01/shopnow-frontend
+    tag: "3.0"
+  replicas: 2
+  service:
+    port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  host: shopnow.local
