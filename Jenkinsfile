@@ -9,19 +9,24 @@ kind: Pod
 spec:
   serviceAccountName: jenkins
   containers:
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:latest
-      command:
-        - /busybox/cat
-      tty: true
-      volumeMounts:
-        - name: docker-config
-          mountPath: /kaniko/.docker
-    - name: helm
-      image: alpine/helm:3.12.0
-      command:
-        - cat
-      tty: true
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:latest
+    command:
+      - sleep
+    args:
+      - "9999999"
+    tty: true
+    volumeMounts:
+      - name: docker-config
+        mountPath: /kaniko/.docker
+
+  - name: helm
+    image: alpine/helm:3.12.0
+    command:
+      - sleep
+    args:
+      - "9999999"
+    tty: true
   volumes:
     - name: docker-config
       secret:
