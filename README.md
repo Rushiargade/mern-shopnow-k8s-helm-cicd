@@ -1,10 +1,3 @@
-Yes. Below is the **entire README as a single Markdown code block**.
-
-Just copy everything inside the code block and paste it into your `README.md` file in VS Code. Nothing will break formatting.
-
----
-
-```markdown
 # 📦 MERN Stack Deployment using Kubernetes, Helm & Jenkins CI/CD
 
 ## 🚀 Project Overview
@@ -303,20 +296,3 @@ This project demonstrates strong understanding of Kubernetes deployment, Helm te
 # 🔗 Repository
 
 [https://github.com/Rushiargade/mern-shopnow-k8s-helm-cicd](https://github.com/Rushiargade/mern-shopnow-k8s-helm-cicd)
-
-```
-
----
-
-Now you can:
-
-1. Open `README.md`
-2. Delete everything
-3. Paste the above content
-4. Save
-5. `git add .`
-6. `git commit -m "Final professional README"`
-7. `git push`
-
-If you want, I can now give you a short viva explanation script so you can confidently explain this project.
-```
