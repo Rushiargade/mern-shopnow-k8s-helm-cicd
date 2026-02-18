@@ -9,24 +9,21 @@ kind: Pod
 spec:
   serviceAccountName: jenkins
   containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
-    command:
-      - sleep
-    args:
-      - "9999999"
-    tty: true
-    volumeMounts:
-      - name: docker-config
-        mountPath: /kaniko/.docker
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:latest
+      tty: true
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker
 
-  - name: helm
-    image: alpine/helm:3.12.0
-    command:
-      - sleep
-    args:
-      - "9999999"
-    tty: true
+    - name: helm
+      image: alpine/helm:3.12.0
+      command:
+        - sh
+        - -c
+        - "sleep 999999"
+      tty: true
+
   volumes:
     - name: docker-config
       secret:
@@ -58,7 +55,8 @@ spec:
                       --dockerfile=shopNow/backend/Dockerfile \
                       --context=dir://shopNow/backend \
                       --destination=$DOCKERHUB_REPO_BACKEND:${BUILD_NUMBER} \
-                      --destination=$DOCKERHUB_REPO_BACKEND:latest
+                      --destination=$DOCKERHUB_REPO_BACKEND:latest \
+                      --cleanup
                     """
                 }
             }
@@ -72,7 +70,8 @@ spec:
                       --dockerfile=shopNow/frontend/Dockerfile \
                       --context=dir://shopNow/frontend \
                       --destination=$DOCKERHUB_REPO_FRONTEND:${BUILD_NUMBER} \
-                      --destination=$DOCKERHUB_REPO_FRONTEND:latest
+                      --destination=$DOCKERHUB_REPO_FRONTEND:latest \
+                      --cleanup
                     """
                 }
             }
